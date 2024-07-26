@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de Resultados - Laboratorio Clínico BIOSALUD</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+        h1 {
+            color: #77ba02;
+        }
+        p {
+            color: #555;
+        }
+        input[type="text"], input[type="file"], input[type="password"], label {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: calc(100% - 26px);
+            margin-bottom: 20px;
+            font-size: 16px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #2a7a8c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1e5b6e;
+        }
+        #password-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #upload-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getStorage, ref, uploadBytesResumable } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnxmCohME7P0sRM3LwoBVICffaw5THX7Q",
+            authDomain: "viraresultados-8ec20.firebaseapp.com",
+            projectId: "viraresultados-8ec20",
+            storageBucket: "viraresultados-8ec20.appspot.com",
+            messagingSenderId: "464832184858",
+            appId: "1:464832184858:web:29bfac9281c87ec25947a3",
+            measurementId: "G-7ZXS1CGGRW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+
+        window.checkPassword = function() {
+            const password = document.getElementById('password').value;
+            if (password === '5872') {
+                document.getElementById('password-container').style.display = 'none';
+                document.getElementById('upload-container').style.display = 'flex';
+            } else {
+                alert('Contraseña incorrecta.');
+            }
+        }
+
+        window.uploadResults = function uploadResults() {
+            const documento = document.getElementById('documento').value;
+            const files = document.getElementById('files').files;
+
+            if (documento.trim() === '' || files.length === 0) {
+                alert('Por favor, ingrese el documento de identidad y seleccione al menos un archivo PDF.');
+                return;
+            }
+
+            Array.from(files).forEach((file) => {
+                const storageRef = ref(storage, `${documento}/${file.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log(`Carga en progreso: ${progress}%`);
+                    },
+                    (error) => {
+                        console.error('Error subiendo el archivo:', error);
+                        alert('Error subiendo el archivo. Por favor, intente de nuevo.');
+                    },
+                    () => {
+                        alert('Archivo(s) subido(s) exitosamente.');
+                    }
+                );
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div id="password-container">
+            <h1>BIOSALUD</h1>
+            <p>Por favor, ingrese la contraseña para continuar</p>
+            <input type="password" id="password" placeholder="Contraseña">
+            <button onclick="checkPassword()">Entrar</button>
+        </div>
+        <div id="upload-container">
+            <h1>Administración de Resultados</h1>
+            <p>Ingrese el documento de identidad y seleccione los archivos PDF para subir</p>
+            <input type="text" id="documento" placeholder="Documento de Identidad">
+            <input type="file" id="files" accept=".pdf" multiple>
+            <button onclick="uploadResults()">Subir</button>
+        </div>
+    </div>
+</body>
+</html>
