@@ -29,7 +29,7 @@
         p {
             color: #555;
         }
-        input[type="text"], input[type="file"], input[type="password"], label {
+        input[type="text"], input[type="file"], input[type="email"], input[type="password"] {
             padding: 12px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -53,12 +53,7 @@
         button:hover {
             background-color: #1e5b6e;
         }
-        #password-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #upload-container {
+        #login-container, #upload-container {
             display: none;
             flex-direction: column;
             align-items: center;
@@ -66,6 +61,7 @@
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getStorage, ref, uploadBytesResumable } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
 
         const firebaseConfig = {
@@ -79,19 +75,24 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const storage = getStorage(app);
 
-        window.checkPassword = function() {
+        window.login = function() {
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            if (password === '5872') {
-                document.getElementById('password-container').style.display = 'none';
-                document.getElementById('upload-container').style.display = 'flex';
-            } else {
-                alert('Contraseña incorrecta.');
-            }
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    document.getElementById('login-container').style.display = 'none';
+                    document.getElementById('upload-container').style.display = 'flex';
+                })
+                .catch((error) => {
+                    alert('Error al iniciar sesión: ' + error.message);
+                });
         }
 
-        window.uploadResults = function uploadResults() {
+        window.uploadResults = function() {
             const documento = document.getElementById('documento').value;
             const files = document.getElementById('files').files;
 
@@ -123,11 +124,12 @@
 </head>
 <body>
     <div class="container">
-        <div id="password-container">
+        <div id="login-container" style="display: flex;">
             <h1>BIOSALUD</h1>
-            <p>Por favor, ingrese la contraseña para continuar</p>
+            <p>Ingrese su correo y contraseña</p>
+            <input type="email" id="email" placeholder="Correo">
             <input type="password" id="password" placeholder="Contraseña">
-            <button onclick="checkPassword()">Entrar</button>
+            <button onclick="login()">Iniciar Sesión</button>
         </div>
         <div id="upload-container">
             <h1>Administración de Resultados</h1>
